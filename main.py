@@ -2,7 +2,20 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 import urllib3
+import datetime
 urllib3.disable_warnings()
+
+
+def _create_date_range(df):
+    today = datetime.date.today()
+    df_dates = pd.DataFrame(
+        {
+            'data': pd.date_range(df['data'][0], today, freq='d')
+        }
+    )
+
+    df = df_dates.join(df.set_index('data'), on='data').ffill(axis=0)
+    return df
 
 
 def download_data(soup):
@@ -27,8 +40,11 @@ def download_data(soup):
 
     # stringi na liczby i datę
     nbp_df.iloc[:, 1:] = nbp_df.iloc[:, 1:].astype(float)
-    nbp_df['obowiązuje_od'] = pd.to_datetime(nbp_df['obowiązuje_od'])
-    nbp_df['obowiązuje_od'] = nbp_df['obowiązuje_od'].dt.date
+    nbp_df['data'] = pd.to_datetime(nbp_df['obowiązuje_od'])
+    nbp_df.drop('obowiązuje_od', axis='columns', inplace=True)
+
+    nbp_df = _create_date_range(nbp_df)
+    nbp_df['data'] = nbp_df['data'].dt.date
 
     return nbp_df
 
