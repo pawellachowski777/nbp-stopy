@@ -28,8 +28,9 @@ def download_data(soup):
 
         # wyrzucenie pustych wierszy i wierszy z samym rokiem
         try:
-            int(row[0])
-        except (IndexError, TypeError, ValueError):
+            if row:
+                int(row[0])
+        except ValueError:
             if row:
                 rows.append(row)
 
@@ -56,3 +57,4 @@ soup = BeautifulSoup(page.content, 'html.parser')
 nbp_df = download_data(soup)
 
 nbp_df.to_excel('stopy_nbp.xlsx', index=False)
+
